@@ -1,0 +1,6 @@
+{
+  "name": "Travellers",
+  "description": "All-in-one travel planning and finance app for planning trip budgets, tracking expenses, splitting bills, and managing travel companions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
