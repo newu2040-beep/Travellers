@@ -262,7 +262,7 @@ fun SplitBillScreen(
                     Text(
                         text = "+ Add",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = BurgundyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     )
@@ -309,7 +309,7 @@ fun SplitBillScreen(
                     Text(
                         text = "+ Split a Bill",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = BurgundyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     )

@@ -59,30 +59,29 @@ fun FloatingBottomNavBar(
     onCenterPlusClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val isCompact = com.example.ui.theme.LocalCompactMode.current
+    val navHeight = if (isCompact) 56.dp else 64.dp
+    val buttonSize = if (isCompact) 46.dp else 54.dp
+    val iconSize = if (isCompact) 24.dp else 28.dp
+
     Box(
         modifier = modifier
             .fillMaxWidth()
             .navigationBarsPadding()
-            .padding(horizontal = 20.dp, vertical = 12.dp),
+            .padding(
+                horizontal = if (isCompact) 14.dp else 20.dp,
+                vertical = if (isCompact) 8.dp else 12.dp
+            ),
         contentAlignment = Alignment.BottomCenter
     ) {
-        // Floating pill bar
-        Surface(
+        // Floating pill bar with Liquid Glass
+        LiquidGlassCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp)
-                .shadow(
-                    elevation = 12.dp,
-                    shape = RoundedCornerShape(32.dp),
-                    spotColor = Color.Black.copy(alpha = 0.15f)
-                ),
+                .height(navHeight),
             shape = RoundedCornerShape(32.dp),
-            color = MaterialTheme.colorScheme.surface,
-            tonalElevation = 6.dp,
-            border = androidx.compose.foundation.BorderStroke(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
-            )
+            elevation = 10.dp
         ) {
             Row(
                 modifier = Modifier
@@ -110,7 +109,7 @@ fun FloatingBottomNavBar(
                 )
 
                 // Space for floating center plus button
-                Box(modifier = Modifier.size(52.dp))
+                Box(modifier = Modifier.size(buttonSize))
 
                 // Expenses
                 NavTabItem(
@@ -135,15 +134,15 @@ fun FloatingBottomNavBar(
         // Floating Central + Button
         Box(
             modifier = Modifier
-                .offset(y = (-14).dp)
-                .size(54.dp)
+                .offset(y = if (isCompact) (-10).dp else (-14).dp)
+                .size(buttonSize)
                 .shadow(
                     elevation = 10.dp,
                     shape = CircleShape,
-                    spotColor = BurgundyPrimary.copy(alpha = 0.4f)
+                    spotColor = primaryColor.copy(alpha = 0.4f)
                 )
                 .clip(CircleShape)
-                .background(BurgundyPrimary)
+                .background(primaryColor)
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = ripple(bounded = true, color = Color.White),
@@ -156,7 +155,7 @@ fun FloatingBottomNavBar(
                 imageVector = Icons.Default.Add,
                 contentDescription = "Quick Add Actions",
                 tint = Color.White,
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(iconSize)
             )
         }
     }
@@ -170,8 +169,9 @@ private fun NavTabItem(
     unselectedIcon: ImageVector,
     onSelect: () -> Unit
 ) {
+    val primaryColor = MaterialTheme.colorScheme.primary
     val iconColor by animateColorAsState(
-        targetValue = if (isSelected) BurgundyPrimary else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+        targetValue = if (isSelected) primaryColor else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
         label = "navIconColor"
     )
 

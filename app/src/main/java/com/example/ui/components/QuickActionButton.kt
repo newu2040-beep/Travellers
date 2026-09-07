@@ -44,15 +44,19 @@ fun QuickActionsRow(
     onInviteClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val primaryThemeColor = MaterialTheme.colorScheme.primary
+    val isCompact = com.example.ui.theme.LocalCompactMode.current
+    val space = if (isCompact) 6.dp else 10.dp
+
     androidx.compose.foundation.layout.Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(space)
     ) {
         QuickActionButton(
             title = "New Trip",
             icon = Icons.Default.NearMe,
             bgColor = PastelBlush,
-            iconTint = BurgundyPrimary,
+            iconTint = primaryThemeColor,
             onClick = onNewTripClick,
             testTag = "quick_action_new_trip",
             modifier = Modifier.weight(1f)
@@ -97,44 +101,49 @@ fun QuickActionButton(
     testTag: String,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .shadow(2.dp, shape = RoundedCornerShape(18.dp), spotColor = Color.Black.copy(alpha = 0.05f))
-            .clip(RoundedCornerShape(18.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .clickable(
-                interactionSource = null,
-                indication = ripple(bounded = true),
-                onClick = onClick
-            )
-            .padding(vertical = 12.dp, horizontal = 4.dp)
-            .testTag(testTag),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    val isCompact = com.example.ui.theme.LocalCompactMode.current
+    val vertPadding = if (isCompact) 8.dp else 12.dp
+    val iconBoxSize = if (isCompact) 36.dp else 42.dp
+    val iconSize = if (isCompact) 18.dp else 20.dp
+    val textFontSize = if (isCompact) 10.sp else 11.sp
+
+    LiquidGlassCard(
+        modifier = modifier.testTag(testTag),
+        shape = RoundedCornerShape(18.dp),
+        elevation = 3.dp,
+        onClick = onClick
     ) {
-        Box(
+        Column(
             modifier = Modifier
-                .size(42.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(bgColor),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(vertical = vertPadding, horizontal = 2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = iconTint,
-                modifier = Modifier.size(20.dp)
+            Box(
+                modifier = Modifier
+                    .size(iconBoxSize)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(bgColor),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = iconTint,
+                    modifier = Modifier.size(iconSize)
+                )
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = textFontSize,
+                    color = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.padding(top = 4.dp),
+                maxLines = 1
             )
         }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontWeight = FontWeight.Medium,
-                fontSize = 11.sp,
-                color = MaterialTheme.colorScheme.onSurface
-            ),
-            modifier = Modifier.padding(top = 6.dp),
-            maxLines = 1
-        )
     }
 }

@@ -608,3 +608,334 @@ fun EditBudgetDialog(
         }
     }
 }
+
+@Composable
+fun InviteCompanionDialog(
+    trips: List<TripEntity>,
+    initialTripId: Long?,
+    onDismiss: () -> Unit,
+    onAddCompanion: (name: String, amount: Double, tripId: Long) -> Unit
+) {
+    var name by remember { mutableStateOf("") }
+    var email by remember { mutableStateOf("") }
+    var amountText by remember { mutableStateOf("0.0") }
+    var selectedTripId by remember { mutableStateOf(initialTripId ?: trips.firstOrNull()?.id ?: 1L) }
+    
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val currentTrip = trips.firstOrNull { it.id == selectedTripId } ?: trips.firstOrNull()
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
+                .testTag("invite_companion_dialog")
+        ) {
+            Column(
+                modifier = Modifier
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Invite Travel Companion",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Companion Name (e.g. Rahul, Sarah)") },
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag("input_companion_name")
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email or Phone (Optional)") },
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                if (trips.isNotEmpty()) {
+                    Text(
+                        text = "Assign to Trip: ${currentTrip?.destination ?: "Active Trip"}",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        ),
+                        modifier = Modifier.padding(start = 4.dp, bottom = 4.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    // Button 1: Share Invite Link
+                    Button(
+                        onClick = {
+                            val tripName = currentTrip?.destination ?: "our adventure"
+                            val sendIntent = android.content.Intent().apply {
+                                action = android.content.Intent.ACTION_SEND
+                                putExtra(
+                                    android.content.Intent.EXTRA_TEXT,
+                                    "Hey! Join my trip to $tripName on Travellers App! ✈️ Track shared expenses and split bills seamlessly. Join here: https://travellers.app/join?tripId=$selectedTripId"
+                                )
+                                type = "text/plain"
+                            }
+                            context.startActivity(android.content.Intent.createChooser(sendIntent, "Invite via"))
+                            val cName = name.ifBlank { "Travel Companion" }
+                            onAddCompanion(cName, amountText.toDoubleOrNull() ?: 0.0, selectedTripId)
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = PastelLavender)
+                    ) {
+                        Text(
+                            text = "Share Link 🔗",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = Color(0xFF6D28D9),
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+
+                    // Button 2: Add Directly
+                    Button(
+                        onClick = {
+                            val cName = name.ifBlank { "Travel Companion" }
+                            onAddCompanion(cName, amountText.toDoubleOrNull() ?: 0.0, selectedTripId)
+                            android.widget.Toast.makeText(context, "$cName added to trip!", android.widget.Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(48.dp)
+                            .testTag("save_companion_button"),
+                        shape = RoundedCornerShape(24.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = BurgundyPrimary)
+                    ) {
+                        Text(
+                            text = "Add to Trip",
+                            style = MaterialTheme.typography.labelLarge.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun PermissionsRequestDialog(
+    onDismiss: () -> Unit,
+    onRequestAll: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+        ) {
+            Column(modifier = Modifier.padding(22.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Permissions & Access",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+                    IconButton(onClick = onDismiss) {
+                        Icon(Icons.Default.Close, contentDescription = "Close")
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "To provide a full-featured trip expense experience, Travellers needs the following device permissions:",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 13.sp
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                PermissionItemRow(
+                    title = "Notifications Access",
+                    desc = "Receive trip budget alerts, bill split reminders, and companion updates.",
+                    icon = "🔔"
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                PermissionItemRow(
+                    title = "Photo Gallery & Camera",
+                    desc = "Select profile photos and attach expense receipt pictures.",
+                    icon = "🖼️"
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                PermissionItemRow(
+                    title = "Files & PDF Storage",
+                    desc = "Save and export PDF trip expense invoices and backups locally.",
+                    icon = "📄"
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        onRequestAll()
+                        onDismiss()
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    shape = RoundedCornerShape(25.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Grant All Permissions", color = Color.White, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PermissionItemRow(title: String, desc: String, icon: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(text = icon, fontSize = 22.sp, modifier = Modifier.padding(end = 12.dp))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+            Text(
+                text = desc,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 11.sp
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun ThemeSelectionDialog(
+    currentTheme: com.example.ui.theme.AppTheme,
+    onDismiss: () -> Unit,
+    onSelectTheme: (com.example.ui.theme.AppTheme) -> Unit
+) {
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(28.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 8.dp,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+        ) {
+            Column(modifier = Modifier.padding(22.dp)) {
+                Text(
+                    text = "Select Pastel Palette",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                com.example.ui.theme.AppTheme.entries.forEach { theme ->
+                    val isSelected = currentTheme == theme
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            )
+                            .clickable {
+                                onSelectTheme(theme)
+                                onDismiss()
+                            }
+                            .padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .clip(CircleShape)
+                                    .background(theme.primaryColor)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                text = theme.label,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                        }
+
+                        if (isSelected) {
+                            Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

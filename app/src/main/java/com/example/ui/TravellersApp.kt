@@ -40,6 +40,8 @@ fun TravellersApp(
     viewModel: MainViewModel = viewModel()
 ) {
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val isCompactMode by viewModel.isCompactMode.collectAsStateWithLifecycle()
     val hasSeenWelcome by viewModel.hasSeenWelcome.collectAsStateWithLifecycle()
     val currentCurrency by viewModel.selectedCurrency.collectAsStateWithLifecycle()
 
@@ -54,8 +56,11 @@ fun TravellersApp(
     val showAddExpenseDialog by viewModel.showAddExpenseDialog.collectAsStateWithLifecycle()
     val showEditBudgetDialog by viewModel.showEditBudgetDialog.collectAsStateWithLifecycle()
 
-    TravellersTheme(darkTheme = isDarkMode) {
-        if (!hasSeenWelcome) {
+    TravellersTheme(darkTheme = isDarkMode, appTheme = appTheme) {
+        androidx.compose.runtime.CompositionLocalProvider(
+            com.example.ui.theme.LocalCompactMode provides isCompactMode
+        ) {
+            if (!hasSeenWelcome) {
             WelcomeScreen(
                 onGetStarted = { viewModel.completeWelcome() }
             )
@@ -127,6 +132,9 @@ fun TravellersApp(
                                             },
                                             onNavigateToTrips = {
                                                 currentTab = NavigationTab.TRIPS
+                                            },
+                                            onNavigateToProfile = {
+                                                isViewingProfile = true
                                             }
                                         )
                                     }
@@ -180,7 +188,22 @@ fun TravellersApp(
                     onAddExpense = { viewModel.showAddExpenseDialog.value = true },
                     onNewTrip = { viewModel.showAddTripDialog.value = true },
                     onSplitBill = { isViewingSplitBillDirectly = true },
-                    onInvite = { viewModel.addCompanion("Friend") }
+                    onInvite = { viewModel.showInviteDialog.value = true }
+                )
+            }
+
+            // Invite Companion Dialog
+            val showInviteDialog by viewModel.showInviteDialog.collectAsStateWithLifecycle()
+            val allTrips by viewModel.allTrips.collectAsStateWithLifecycle()
+            val selectedTripId by viewModel.selectedTripId.collectAsStateWithLifecycle()
+            if (showInviteDialog) {
+                com.example.ui.components.InviteCompanionDialog(
+                    trips = allTrips,
+                    initialTripId = selectedTripId,
+                    onDismiss = { viewModel.showInviteDialog.value = false },
+                    onAddCompanion = { name, amount, tripId ->
+                        viewModel.addCompanion(name, amount, tripId)
+                    }
                 )
             }
 
@@ -223,5 +246,6 @@ fun TravellersApp(
             }
         }
     }
+}
 }
 

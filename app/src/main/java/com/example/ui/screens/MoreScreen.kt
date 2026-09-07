@@ -53,6 +53,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.data.model.AppCurrency
 import com.example.ui.MainViewModel
 import com.example.utils.ExportHelper
@@ -70,9 +73,14 @@ fun MoreScreen(
     modifier: Modifier = Modifier
 ) {
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val isCompactMode by viewModel.isCompactMode.collectAsStateWithLifecycle()
     val currentCurrency by viewModel.selectedCurrency.collectAsStateWithLifecycle()
     val allTrips by viewModel.allTrips.collectAsStateWithLifecycle()
     val allExpenses by viewModel.allExpenses.collectAsStateWithLifecycle()
+    val showThemeDialog by viewModel.showThemeDialog.collectAsStateWithLifecycle()
+    val showPermissionsDialog by viewModel.showPermissionsDialog.collectAsStateWithLifecycle()
+    val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
     
     val context = LocalContext.current
 
@@ -182,32 +190,62 @@ fun MoreScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(PastelMint),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Person,
-                                contentDescription = null,
-                                tint = StatusGreen,
-                                modifier = Modifier.size(20.dp)
+                        val photoUri = userProfile?.photoUri?.ifBlank { null }
+                        val displayName = userProfile?.name?.ifBlank { "My Profile" } ?: "My Profile"
+                        val displayAge = userProfile?.age?.ifBlank { null }
+
+                        if (!photoUri.isNullOrBlank()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(photoUri)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Profile Photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .border(1.5.dp, MaterialTheme.colorScheme.primary, CircleShape)
                             )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = displayName.take(1).uppercase(),
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                            }
                         }
+
                         Spacer(modifier = Modifier.width(14.dp))
+
                         Column {
                             Text(
-                                text = "My Profile",
+                                text = displayName,
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
+
+                            val subtitle = buildString {
+                                if (!displayAge.isNullOrBlank()) {
+                                    append("Age $displayAge · ")
+                                }
+                                append("Personal details & photo")
+                            }
+
                             Text(
-                                text = "Personal details & photo",
+                                text = subtitle,
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 12.sp
@@ -221,6 +259,121 @@ fun MoreScreen(
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
                         modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                )
+
+                // Pastel Theme Selector Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.showThemeDialog.value = true }
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(appTheme.containerColor),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(18.dp)
+                                    .clip(CircleShape)
+                                    .background(appTheme.primaryColor)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Text(
+                                text = "Pastel Color Theme",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            Text(
+                                text = appTheme.label,
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
+                            )
+                        }
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                )
+
+                // Compact Mode Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("📱", fontSize = 18.sp)
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Text(
+                                text = "Compact Mode (Small Display)",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            Text(
+                                text = "Resizes UI & paddings for smaller phones",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
+                            )
+                        }
+                    }
+
+                    Switch(
+                        checked = isCompactMode,
+                        onCheckedChange = { viewModel.toggleCompactMode() },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = BurgundyPrimary
+                        ),
+                        modifier = Modifier.testTag("compact_mode_switch")
                     )
                 }
 
@@ -358,7 +511,7 @@ fun MoreScreen(
         // Section: Actions & Help
         item {
             Text(
-                text = "App & Guides",
+                text = "App & Permissions",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -374,6 +527,59 @@ fun MoreScreen(
                     .background(MaterialTheme.colorScheme.surface)
                     .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
             ) {
+                // Permissions Access Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { viewModel.showPermissionsDialog.value = true }
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("🔐", fontSize = 18.sp)
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Text(
+                                text = "App Permissions & Access",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            Text(
+                                text = "Notification, Gallery, Storage access",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                )
+
                 // Export Data Row
                 Row(
                     modifier = Modifier
@@ -401,7 +607,7 @@ fun MoreScreen(
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
                             Text(
-                                text = "Export Data",
+                                text = "Export PDF Invoice & Data",
                                 style = MaterialTheme.typography.titleMedium.copy(
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.SemiBold,
@@ -409,7 +615,7 @@ fun MoreScreen(
                                 )
                             )
                             Text(
-                                text = "Save as JSON, CSV, or TXT",
+                                text = "Export PDF Invoice Statement, JSON, CSV, or TXT",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 12.sp
@@ -475,6 +681,57 @@ fun MoreScreen(
                 }
             }
         }
+
+        // Developer Credit Card
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f))
+                    .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(20.dp))
+                    .padding(18.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Made with ❤️ by Rahul Shah",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 16.sp
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Travellers v1.2 · Premium Expense & Travel Suite",
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 12.sp
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    // Theme Selection Dialog
+    if (showThemeDialog) {
+        com.example.ui.components.ThemeSelectionDialog(
+            currentTheme = appTheme,
+            onDismiss = { viewModel.showThemeDialog.value = false },
+            onSelectTheme = { selectedTheme -> viewModel.setAppTheme(selectedTheme) }
+        )
+    }
+
+    // Permissions Dialog
+    if (showPermissionsDialog) {
+        com.example.ui.components.PermissionsRequestDialog(
+            onDismiss = { viewModel.showPermissionsDialog.value = false },
+            onRequestAll = {
+                // Request runtime permissions if applicable
+            }
+        )
     }
 
     // Currency Selection Dialog
@@ -513,14 +770,14 @@ fun MoreScreen(
                                 text = "${currency.symbol}  ${currency.label}",
                                 style = MaterialTheme.typography.bodyLarge.copy(
                                     fontWeight = if (currentCurrency == currency) FontWeight.Bold else FontWeight.Normal,
-                                    color = if (currentCurrency == currency) BurgundyPrimary else MaterialTheme.colorScheme.onSurface
+                                    color = if (currentCurrency == currency) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                             )
                             if (currentCurrency == currency) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    tint = BurgundyPrimary,
+                                    tint = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -540,7 +797,7 @@ fun MoreScreen(
             ) {
                 Column(modifier = Modifier.padding(20.dp)) {
                     Text(
-                        text = "Export Data",
+                        text = "Export Options",
                         style = MaterialTheme.typography.titleLarge.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
@@ -549,26 +806,38 @@ fun MoreScreen(
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    listOf("JSON", "CSV", "TXT").forEach { format ->
+                    val options = listOf(
+                        "PDF" to "📄 Export PDF Invoice Statement",
+                        "JSON" to "📊 Export JSON Raw Data",
+                        "CSV" to "📈 Export CSV Spreadsheet",
+                        "TXT" to "📝 Export TXT Summary Document"
+                    )
+
+                    options.forEach { (format, title) ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clip(RoundedCornerShape(12.dp))
+                                .clip(RoundedCornerShape(14.dp))
+                                .background(
+                                    if (format == "PDF") MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                                    else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                )
                                 .clickable {
-                                    ExportHelper.exportData(context, allTrips, allExpenses, format)
+                                    ExportHelper.exportData(context, allTrips, allExpenses, format, currentCurrency.symbol)
                                     showExportDialog = false
                                 }
-                                .padding(vertical = 14.dp, horizontal = 12.dp),
+                                .padding(vertical = 14.dp, horizontal = 14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Export as $format",
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    fontWeight = FontWeight.Medium,
+                                text = title,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    fontWeight = if (format == "PDF") FontWeight.Bold else FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                             )
                         }
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
             }

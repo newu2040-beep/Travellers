@@ -31,6 +31,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isDarkMode = MutableStateFlow(false)
     val isDarkMode: StateFlow<Boolean> = _isDarkMode.asStateFlow()
 
+    private val _appTheme = MutableStateFlow(com.example.ui.theme.AppTheme.BURGUNDY)
+    val appTheme: StateFlow<com.example.ui.theme.AppTheme> = _appTheme.asStateFlow()
+
+    private val _isCompactMode = MutableStateFlow(false)
+    val isCompactMode: StateFlow<Boolean> = _isCompactMode.asStateFlow()
+
     private val _selectedCurrency = MutableStateFlow(AppCurrency.USD)
     val selectedCurrency: StateFlow<AppCurrency> = _selectedCurrency.asStateFlow()
 
@@ -48,6 +54,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val showAddTripDialog = MutableStateFlow(false)
     val showAddExpenseDialog = MutableStateFlow(false)
     val showEditBudgetDialog = MutableStateFlow(false)
+    val showInviteDialog = MutableStateFlow(false)
+    val showPermissionsDialog = MutableStateFlow(false)
+    val showThemeDialog = MutableStateFlow(false)
 
     // Data streams from Room
     val allTrips: StateFlow<List<TripEntity>> = repository.allTrips
@@ -91,6 +100,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setDarkMode(dark: Boolean) {
         _isDarkMode.value = dark
+    }
+
+    fun setAppTheme(theme: com.example.ui.theme.AppTheme) {
+        _appTheme.value = theme
+        showThemeDialog.value = false
+    }
+
+    fun toggleCompactMode() {
+        _isCompactMode.value = !_isCompactMode.value
+    }
+
+    fun setCompactMode(compact: Boolean) {
+        _isCompactMode.value = compact
     }
 
     fun setCurrency(currency: AppCurrency) {
@@ -167,20 +189,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun addCompanion(name: String, amount: Double = 0.0) {
+    fun addCompanion(name: String, amount: Double = 0.0, tripId: Long? = null) {
         viewModelScope.launch {
-            val currentTripId = _selectedTripId.value ?: 1L
-            val initial = name.trim().take(1).uppercase()
+            val targetTripId = tripId ?: _selectedTripId.value ?: allTrips.value.firstOrNull()?.id ?: 1L
+            val cleanName = if (name.isBlank()) "Travel Companion" else name.trim()
+            val initial = cleanName.take(1).uppercase()
             repository.addCompanion(
                 CompanionEntity(
-                    tripId = currentTripId,
-                    name = name.trim(),
+                    tripId = targetTripId,
+                    name = cleanName,
                     initial = initial,
                     amount = amount,
                     status = "Pending",
                     isSelf = false
                 )
             )
+            showInviteDialog.value = false
         }
     }
 

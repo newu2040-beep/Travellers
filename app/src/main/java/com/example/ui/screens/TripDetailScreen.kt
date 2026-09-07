@@ -344,7 +344,7 @@ fun TripDetailScreen(
                     Text(
                         text = "+ Add Expense",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = BurgundyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     )

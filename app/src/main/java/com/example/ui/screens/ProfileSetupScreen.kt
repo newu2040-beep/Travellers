@@ -1,5 +1,6 @@
 package com.example.ui.screens
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -56,7 +57,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.data.local.ProfileEntity
 import com.example.ui.MainViewModel
-import com.example.ui.theme.BurgundyPrimary
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun ProfileSetupScreen(
@@ -65,21 +67,27 @@ fun ProfileSetupScreen(
     modifier: Modifier = Modifier
 ) {
     val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
-    
+    val context = LocalContext.current
+    val primaryColor = MaterialTheme.colorScheme.primary
+
     var name by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("Male") }
     var bio by remember { mutableStateOf("") }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
-    
+    var isInitialized by remember { mutableStateOf(false) }
+
     LaunchedEffect(userProfile) {
-        userProfile?.let {
-            name = it.name
-            age = it.age
-            gender = it.gender.ifBlank { "Male" }
-            bio = it.bio
-            if (it.photoUri.isNotBlank()) {
-                photoUri = Uri.parse(it.photoUri)
+        if (!isInitialized && userProfile != null) {
+            userProfile?.let {
+                name = it.name
+                age = it.age
+                gender = it.gender.ifBlank { "Male" }
+                bio = it.bio
+                if (it.photoUri.isNotBlank()) {
+                    photoUri = Uri.parse(it.photoUri)
+                }
+                isInitialized = true
             }
         }
     }
@@ -88,7 +96,8 @@ fun ProfileSetupScreen(
         contract = ActivityResultContracts.PickVisualMedia(),
         onResult = { uri ->
             if (uri != null) {
-                photoUri = uri
+                val savedUri = copyUriToInternalStorage(context, uri)
+                photoUri = savedUri
             }
         }
     )
@@ -130,7 +139,7 @@ fun ProfileSetupScreen(
                 .size(120.dp)
                 .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.surfaceVariant)
-                .border(2.dp, BurgundyPrimary, CircleShape)
+                .border(2.dp, primaryColor, CircleShape)
                 .clickable {
                     photoPickerLauncher.launch(
                         androidx.activity.result.PickVisualMediaRequest(
@@ -171,7 +180,7 @@ fun ProfileSetupScreen(
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BurgundyPrimary,
+                focusedBorderColor = primaryColor,
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
@@ -187,7 +196,7 @@ fun ProfileSetupScreen(
             shape = RoundedCornerShape(16.dp),
             singleLine = true,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BurgundyPrimary,
+                focusedBorderColor = primaryColor,
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
@@ -212,7 +221,7 @@ fun ProfileSetupScreen(
                 RadioButton(
                     selected = gender == "Male",
                     onClick = { gender = "Male" },
-                    colors = RadioButtonDefaults.colors(selectedColor = BurgundyPrimary)
+                    colors = RadioButtonDefaults.colors(selectedColor = primaryColor)
                 )
                 Text("Male", modifier = Modifier.clickable { gender = "Male" })
             }
@@ -220,7 +229,7 @@ fun ProfileSetupScreen(
                 RadioButton(
                     selected = gender == "Female",
                     onClick = { gender = "Female" },
-                    colors = RadioButtonDefaults.colors(selectedColor = BurgundyPrimary)
+                    colors = RadioButtonDefaults.colors(selectedColor = primaryColor)
                 )
                 Text("Female", modifier = Modifier.clickable { gender = "Female" })
             }
@@ -238,7 +247,7 @@ fun ProfileSetupScreen(
             shape = RoundedCornerShape(16.dp),
             maxLines = 3,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = BurgundyPrimary,
+                focusedBorderColor = primaryColor,
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface
             )
@@ -250,11 +259,11 @@ fun ProfileSetupScreen(
             onClick = {
                 val updatedProfile = ProfileEntity(
                     id = 1,
-                    name = name,
-                    age = age,
+                    name = name.trim(),
+                    age = age.trim(),
                     gender = gender,
                     photoUri = photoUri?.toString() ?: "",
-                    bio = bio
+                    bio = bio.trim()
                 )
                 viewModel.saveProfile(updatedProfile)
                 onNavigateBack()
@@ -263,9 +272,57 @@ fun ProfileSetupScreen(
                 .fillMaxWidth()
                 .height(56.dp),
             shape = RoundedCornerShape(28.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = BurgundyPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = primaryColor)
         ) {
             Text("Save Profile", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Developer Credit
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                .border(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f), RoundedCornerShape(18.dp))
+                .padding(vertical = 14.dp, horizontal = 16.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "Made with ❤️ by Rahul Shah",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 15.sp
+                    )
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Travellers Expense & Budget Companion",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = 12.sp
+                    )
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(24.dp))
+    }
+}
+
+private fun copyUriToInternalStorage(context: Context, uri: Uri): Uri {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return uri
+        val file = File(context.filesDir, "user_profile_photo.jpg")
+        FileOutputStream(file).use { output ->
+            inputStream.copyTo(output)
+        }
+        Uri.fromFile(file)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        uri
     }
 }

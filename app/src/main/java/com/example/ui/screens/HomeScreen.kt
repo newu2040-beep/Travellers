@@ -47,6 +47,11 @@ import com.example.data.local.TripEntity
 import com.example.data.model.AppCurrency
 import com.example.ui.MainViewModel
 import com.example.ui.components.FinancialOverviewCards
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.ui.components.NextTripFeaturedCard
 import com.example.ui.components.QuickActionsRow
 import com.example.ui.components.RecentTripItemCard
@@ -59,6 +64,7 @@ fun HomeScreen(
     onNavigateToTripDetail: (Long) -> Unit,
     onNavigateToSplitBill: () -> Unit,
     onNavigateToTrips: () -> Unit,
+    onNavigateToProfile: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     val allTrips by viewModel.filteredTrips.collectAsStateWithLifecycle()
@@ -67,6 +73,7 @@ fun HomeScreen(
     val currentCurrency by viewModel.selectedCurrency.collectAsStateWithLifecycle()
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
+    val userProfile by viewModel.userProfile.collectAsStateWithLifecycle()
 
     // Calculate spending metrics
     val featuredTrip = nextTrip ?: allTrips.firstOrNull()
@@ -76,6 +83,11 @@ fun HomeScreen(
 
     val totalSpent = featuredTripExpenses.sumOf { it.amount }
     val totalBudget = featuredTrip?.totalBudget ?: 1200.0
+
+    val profileName = userProfile?.name?.ifBlank { "Traveller" } ?: "Traveller"
+    val profileAge = userProfile?.age?.ifBlank { null }
+    val profilePhotoUri = userProfile?.photoUri?.ifBlank { null }
+    val avatarInitial = profileName.take(1).uppercase()
 
     LazyColumn(
         modifier = modifier
@@ -94,45 +106,78 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .clickable { onNavigateToProfile() }
+                ) {
                     // Profile Avatar
                     Box(
                         modifier = Modifier
-                            .size(42.dp)
+                            .size(44.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF14532D))
-                            .border(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f), CircleShape),
+                            .background(MaterialTheme.colorScheme.primaryContainer)
+                            .border(1.5.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f), CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = "R",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
+                        if (!profilePhotoUri.isNullOrBlank()) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(profilePhotoUri)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Profile Photo",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
                             )
-                        )
+                        } else {
+                            Text(
+                                text = avatarInitial,
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.width(12.dp))
 
                     Column {
                         Text(
-                            text = "Hello, Traveller",
+                            text = "Hello, $profileName",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 17.sp
-                            )
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
+
+                        val destinationName = featuredTrip?.destination ?: "Kathmandu"
+                        val subtitleText = buildString {
+                            if (!profileAge.isNullOrBlank()) {
+                                append("Age $profileAge · ")
+                            }
+                            append("$destinationName awaits")
+                        }
+
                         Text(
-                            text = "Kathmandu valley awaits",
+                            text = subtitleText,
                             style = MaterialTheme.typography.bodySmall.copy(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 12.sp
-                            )
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
+
+                Spacer(modifier = Modifier.width(8.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     // Theme toggle button
@@ -147,7 +192,7 @@ fun HomeScreen(
                         Icon(
                             imageVector = if (isDarkMode) Icons.Default.LightMode else Icons.Default.DarkMode,
                             contentDescription = "Toggle Theme",
-                            tint = BurgundyPrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -192,7 +237,7 @@ fun HomeScreen(
                     .testTag("home_search_bar"),
                 shape = RoundedCornerShape(26.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = BurgundyPrimary,
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
                     unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface
@@ -207,7 +252,7 @@ fun HomeScreen(
                 onNewTripClick = { viewModel.showAddTripDialog.value = true },
                 onAddExpenseClick = { viewModel.showAddExpenseDialog.value = true },
                 onSplitBillClick = onNavigateToSplitBill,
-                onInviteClick = { viewModel.addCompanion("Friend") }
+                onInviteClick = { viewModel.showInviteDialog.value = true }
             )
         }
 
@@ -233,7 +278,7 @@ fun HomeScreen(
                     Text(
                         text = "See all >",
                         style = MaterialTheme.typography.labelMedium.copy(
-                            color = BurgundyPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.SemiBold
                         )
                     )

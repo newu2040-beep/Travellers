@@ -44,16 +44,20 @@ fun FinancialOverviewCards(
     val usedPercent = if (totalBudget > 0) ((totalSpent / totalBudget) * 100).toInt() else 0
     val remainingPercent = (100 - usedPercent).coerceAtLeast(0)
 
+    val primaryThemeColor = MaterialTheme.colorScheme.primary
+    val isCompact = com.example.ui.theme.LocalCompactMode.current
+    val cardGap = if (isCompact) 6.dp else 8.dp
+
     Row(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(cardGap)
     ) {
         // Total Budget Card
         FinanceCardItem(
             title = "Total Budget",
             amount = currency.format(totalBudget),
             progress = (usedPercent / 100f).coerceIn(0f, 1f),
-            progressColor = BurgundyPrimary,
+            progressColor = primaryThemeColor,
             progressText = "$usedPercent% used",
             testTag = "total_budget_card",
             modifier = Modifier.weight(1f)
@@ -64,7 +68,7 @@ fun FinancialOverviewCards(
             title = "Total Spent",
             amount = currency.format(totalSpent),
             progress = (usedPercent / 100f).coerceIn(0f, 1f),
-            progressColor = BurgundyPrimary,
+            progressColor = primaryThemeColor,
             progressText = "$usedPercent%",
             testTag = "total_spent_card",
             modifier = Modifier.weight(1f)
@@ -93,73 +97,77 @@ private fun FinanceCardItem(
     testTag: String,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier
-            .clip(RoundedCornerShape(20.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f),
-                shape = RoundedCornerShape(20.dp)
-            )
-            .padding(horizontal = 10.dp, vertical = 12.dp)
-            .testTag(testTag)
+    val isCompact = com.example.ui.theme.LocalCompactMode.current
+    val paddingVert = if (isCompact) 8.dp else 12.dp
+    val paddingHoriz = if (isCompact) 6.dp else 10.dp
+    val amountFontSize = if (isCompact) 13.sp else 15.sp
+
+    LiquidGlassCard(
+        modifier = modifier.testTag(testTag),
+        shape = RoundedCornerShape(20.dp),
+        elevation = 3.dp
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
-            modifier = Modifier.fillMaxWidth()
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = paddingHoriz, vertical = paddingVert)
         ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontSize = if (isCompact) 10.sp else 11.sp
+                    ),
+                    maxLines = 1
+                )
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                    modifier = Modifier.size(12.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
             Text(
-                text = title,
-                style = MaterialTheme.typography.labelSmall.copy(
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontSize = 11.sp
+                text = amount,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = amountFontSize
                 ),
                 maxLines = 1
             )
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(14.dp)
+
+            Spacer(modifier = Modifier.height(6.dp))
+
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp)
+                    .clip(RoundedCornerShape(2.dp)),
+                color = progressColor,
+                trackColor = progressColor.copy(alpha = 0.15f),
+                strokeCap = StrokeCap.Round
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = progressText,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = progressColor,
+                    fontWeight = FontWeight.Medium,
+                    fontSize = 9.sp
+                )
             )
         }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = amount,
-            style = MaterialTheme.typography.titleMedium.copy(
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 15.sp
-            ),
-            maxLines = 1
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(4.dp)
-                .clip(RoundedCornerShape(2.dp)),
-            color = progressColor,
-            trackColor = progressColor.copy(alpha = 0.15f),
-            strokeCap = StrokeCap.Round
-        )
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = progressText,
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = progressColor,
-                fontWeight = FontWeight.Medium,
-                fontSize = 10.sp
-            )
-        )
     }
 }

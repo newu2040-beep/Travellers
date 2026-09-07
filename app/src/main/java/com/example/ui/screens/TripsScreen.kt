@@ -51,6 +51,8 @@ fun TripsScreen(
     val allTrips by viewModel.allTrips.collectAsStateWithLifecycle()
     val allExpenses by viewModel.allExpenses.collectAsStateWithLifecycle()
     val currentCurrency by viewModel.selectedCurrency.collectAsStateWithLifecycle()
+    val isCompact = com.example.ui.theme.LocalCompactMode.current
+    val primaryColor = MaterialTheme.colorScheme.primary
 
     var filterStatus by remember { mutableStateOf("ALL") }
 
@@ -66,8 +68,13 @@ fun TripsScreen(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding(),
-        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 12.dp, bottom = 100.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        contentPadding = PaddingValues(
+            start = if (isCompact) 14.dp else 20.dp,
+            end = if (isCompact) 14.dp else 20.dp,
+            top = 12.dp,
+            bottom = 100.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(if (isCompact) 12.dp else 16.dp)
     ) {
         // Title Bar + Create Button
         item {
@@ -81,7 +88,7 @@ fun TripsScreen(
                     style = MaterialTheme.typography.headlineMedium.copy(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontSize = 24.sp
+                        fontSize = if (isCompact) 20.sp else 24.sp
                     )
                 )
 
@@ -90,7 +97,7 @@ fun TripsScreen(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
-                        .background(BurgundyPrimary)
+                        .background(primaryColor)
                         .testTag("trips_screen_create_button")
                 ) {
                     Icon(
@@ -115,7 +122,7 @@ fun TripsScreen(
                         label = { Text(label, fontSize = 12.sp) },
                         shape = RoundedCornerShape(16.dp),
                         colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = BurgundyPrimary,
+                            selectedContainerColor = primaryColor,
                             selectedLabelColor = Color.White
                         )
                     )
