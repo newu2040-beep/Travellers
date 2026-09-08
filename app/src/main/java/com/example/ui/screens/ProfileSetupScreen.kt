@@ -26,6 +26,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddAPhoto
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -75,6 +76,11 @@ fun ProfileSetupScreen(
     var gender by remember { mutableStateOf("Male") }
     var bio by remember { mutableStateOf("") }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
+    var passportNumber by remember { mutableStateOf("") }
+    var emergencyContact by remember { mutableStateOf("") }
+    var homeAddress by remember { mutableStateOf("") }
+    var bloodGroup by remember { mutableStateOf("") }
+    var customNote by remember { mutableStateOf("") }
     var isInitialized by remember { mutableStateOf(false) }
 
     LaunchedEffect(userProfile) {
@@ -87,6 +93,11 @@ fun ProfileSetupScreen(
                 if (it.photoUri.isNotBlank()) {
                     photoUri = Uri.parse(it.photoUri)
                 }
+                passportNumber = it.passportNumber
+                emergencyContact = it.emergencyContact
+                homeAddress = it.homeAddress
+                bloodGroup = it.bloodGroup
+                customNote = it.customNote
                 isInitialized = true
             }
         }
@@ -253,6 +264,97 @@ fun ProfileSetupScreen(
             )
         )
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(
+            text = "Custom Details & Information",
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            ),
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        )
+
+        OutlinedTextField(
+            value = passportNumber,
+            onValueChange = { passportNumber = it },
+            label = { Text("Passport Number") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = primaryColor,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = emergencyContact,
+            onValueChange = { emergencyContact = it },
+            label = { Text("Emergency Contact") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = primaryColor,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = homeAddress,
+            onValueChange = { homeAddress = it },
+            label = { Text("Home Address") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = primaryColor,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = bloodGroup,
+            onValueChange = { bloodGroup = it },
+            label = { Text("Blood Group") },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(16.dp),
+            singleLine = true,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = primaryColor,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = customNote,
+            onValueChange = { customNote = it },
+            label = { Text("Special Medical / Travel Notes") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp),
+            shape = RoundedCornerShape(16.dp),
+            maxLines = 3,
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = primaryColor,
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface
+            )
+        )
+
         Spacer(modifier = Modifier.height(32.dp))
 
         Button(
@@ -263,7 +365,12 @@ fun ProfileSetupScreen(
                     age = age.trim(),
                     gender = gender,
                     photoUri = photoUri?.toString() ?: "",
-                    bio = bio.trim()
+                    bio = bio.trim(),
+                    passportNumber = passportNumber.trim(),
+                    emergencyContact = emergencyContact.trim(),
+                    homeAddress = homeAddress.trim(),
+                    bloodGroup = bloodGroup.trim(),
+                    customNote = customNote.trim()
                 )
                 viewModel.saveProfile(updatedProfile)
                 onNavigateBack()
@@ -290,17 +397,36 @@ fun ProfileSetupScreen(
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "Made with ❤️ by Rahul Shah",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 15.sp
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Made with ",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 15.sp
+                        )
                     )
-                )
+                    Icon(
+                        imageVector = Icons.Default.Favorite,
+                        contentDescription = "Love",
+                        tint = Color(0xFFE11D48),
+                        modifier = Modifier.size(15.dp)
+                    )
+                    Text(
+                        text = " by Rahul Shah",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 15.sp
+                        )
+                    )
+                }
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = "Travellers Expense & Budget Companion",
+                    text = "Travellers v4.0 · Expense & Budget Companion",
                     style = MaterialTheme.typography.bodySmall.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         fontSize = 12.sp

@@ -19,11 +19,17 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CallSplit
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.FlightTakeoff
+import androidx.compose.material.icons.filled.FolderShared
 import androidx.compose.material.icons.filled.NearMe
+import androidx.compose.material.icons.filled.NotificationsActive
 import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -719,13 +725,22 @@ fun InviteCompanionDialog(
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = PastelLavender)
                     ) {
-                        Text(
-                            text = "Share Link 🔗",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                color = Color(0xFF6D28D9),
-                                fontWeight = FontWeight.Bold
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Share,
+                                contentDescription = null,
+                                tint = Color(0xFF6D28D9),
+                                modifier = Modifier.size(16.dp)
                             )
-                        )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Share Link",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = Color(0xFF6D28D9),
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
                     }
 
                     // Button 2: Add Directly
@@ -742,13 +757,22 @@ fun InviteCompanionDialog(
                         shape = RoundedCornerShape(24.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = BurgundyPrimary)
                     ) {
-                        Text(
-                            text = "Add to Trip",
-                            style = MaterialTheme.typography.labelLarge.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.PersonAdd,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
                             )
-                        )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Add to Trip",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            )
+                        }
                     }
                 }
             }
@@ -801,7 +825,7 @@ fun PermissionsRequestDialog(
                 PermissionItemRow(
                     title = "Notifications Access",
                     desc = "Receive trip budget alerts, bill split reminders, and companion updates.",
-                    icon = "🔔"
+                    icon = Icons.Default.NotificationsActive
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -809,7 +833,7 @@ fun PermissionsRequestDialog(
                 PermissionItemRow(
                     title = "Photo Gallery & Camera",
                     desc = "Select profile photos and attach expense receipt pictures.",
-                    icon = "🖼️"
+                    icon = Icons.Default.PhotoLibrary
                 )
 
                 Spacer(modifier = Modifier.height(10.dp))
@@ -817,7 +841,7 @@ fun PermissionsRequestDialog(
                 PermissionItemRow(
                     title = "Files & PDF Storage",
                     desc = "Save and export PDF trip expense invoices and backups locally.",
-                    icon = "📄"
+                    icon = Icons.Default.FolderShared
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -841,7 +865,7 @@ fun PermissionsRequestDialog(
 }
 
 @Composable
-private fun PermissionItemRow(title: String, desc: String, icon: String) {
+private fun PermissionItemRow(title: String, desc: String, icon: ImageVector) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -850,7 +874,21 @@ private fun PermissionItemRow(title: String, desc: String, icon: String) {
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(text = icon, fontSize = 22.sp, modifier = Modifier.padding(end = 12.dp))
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
@@ -931,7 +969,12 @@ fun ThemeSelectionDialog(
                         }
 
                         if (isSelected) {
-                            Text("✓", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Selected",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     }
                 }

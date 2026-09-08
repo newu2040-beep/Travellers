@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -137,7 +139,7 @@ fun ExpensesScreen(
                                 "• ${exp.title}: ${currentCurrency.symbol}${exp.amount} (${exp.category} - ${exp.dateDisplay})"
                             }
                             clipboardManager.setText(AnnotatedString("Trip Expenses History:\n$historyText\nTotal: ${currentCurrency.format(totalSpent)}"))
-                            Toast.makeText(context, "Expenses history copied to clipboard! 📋", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Expenses history copied to clipboard!", Toast.LENGTH_SHORT).show()
                         },
                         modifier = Modifier
                             .padding(end = 8.dp)
@@ -237,13 +239,22 @@ fun ExpensesScreen(
                                 )
                             )
                         }
-                        Text(
-                            text = if (showPasteBox) "▲ Hide" else "▼ Paste",
-                            style = MaterialTheme.typography.labelSmall.copy(
-                                color = primaryColor,
-                                fontWeight = FontWeight.Bold
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = if (showPasteBox) "Hide" else "Paste",
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = primaryColor,
+                                    fontWeight = FontWeight.Bold
+                                )
                             )
-                        )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = if (showPasteBox) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                tint = primaryColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
 
                     if (showPasteBox) {
@@ -327,6 +338,15 @@ fun ExpensesScreen(
                         selected = selectedCategoryFilter == code,
                         onClick = { selectedCategoryFilter = code },
                         label = { Text(label, fontSize = 11.sp) },
+                        leadingIcon = if (code != "ALL") {
+                            {
+                                Icon(
+                                    imageVector = com.example.ui.components.getCategoryIcon(code),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp)
+                                )
+                            }
+                        } else null,
                         shape = RoundedCornerShape(16.dp),
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = primaryColor,
@@ -353,7 +373,7 @@ fun ExpensesScreen(
                         currency = currentCurrency,
                         onExpenseClick = {
                             clipboardManager.setText(AnnotatedString("${expense.title}: ${currentCurrency.symbol}${expense.amount} (${expense.category})"))
-                            Toast.makeText(context, "Copied expense details! 📋", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(context, "Copied expense details to clipboard!", Toast.LENGTH_SHORT).show()
                         }
                     )
                 }

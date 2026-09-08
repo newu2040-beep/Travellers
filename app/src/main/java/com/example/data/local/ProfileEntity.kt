@@ -16,7 +16,12 @@ data class ProfileEntity(
     val age: String = "",
     val gender: String = "",
     val photoUri: String = "",
-    val bio: String = ""
+    val bio: String = "",
+    val passportNumber: String = "",
+    val emergencyContact: String = "",
+    val homeAddress: String = "",
+    val bloodGroup: String = "",
+    val customNote: String = ""
 )
 
 @Dao

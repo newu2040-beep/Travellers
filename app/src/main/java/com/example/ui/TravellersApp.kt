@@ -35,6 +35,8 @@ import com.example.ui.screens.TripsScreen
 import com.example.ui.screens.WelcomeScreen
 import com.example.ui.theme.TravellersTheme
 
+import androidx.compose.ui.unit.dp
+
 @Composable
 fun TravellersApp(
     viewModel: MainViewModel = viewModel()
@@ -42,6 +44,9 @@ fun TravellersApp(
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
     val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
     val isCompactMode by viewModel.isCompactMode.collectAsStateWithLifecycle()
+    val isSolidMode by viewModel.isSolidMode.collectAsStateWithLifecycle()
+    val appFont by viewModel.appFont.collectAsStateWithLifecycle()
+    val customCornerRadiusDp by viewModel.customCornerRadiusDp.collectAsStateWithLifecycle()
     val hasSeenWelcome by viewModel.hasSeenWelcome.collectAsStateWithLifecycle()
     val currentCurrency by viewModel.selectedCurrency.collectAsStateWithLifecycle()
 
@@ -56,7 +61,15 @@ fun TravellersApp(
     val showAddExpenseDialog by viewModel.showAddExpenseDialog.collectAsStateWithLifecycle()
     val showEditBudgetDialog by viewModel.showEditBudgetDialog.collectAsStateWithLifecycle()
 
-    TravellersTheme(darkTheme = isDarkMode, appTheme = appTheme) {
+    val resolvedCornerRadius = if (customCornerRadiusDp >= 0) customCornerRadiusDp.dp else (-1).dp
+
+    TravellersTheme(
+        darkTheme = isDarkMode,
+        appTheme = appTheme,
+        appFont = appFont,
+        isSolidMode = isSolidMode,
+        customCornerRadius = resolvedCornerRadius
+    ) {
         androidx.compose.runtime.CompositionLocalProvider(
             com.example.ui.theme.LocalCompactMode provides isCompactMode
         ) {

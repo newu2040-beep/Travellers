@@ -10,12 +10,7 @@ import com.example.data.local.SplitBillEntity
 import com.example.data.local.TripEntity
 import com.example.data.model.AppCurrency
 import com.example.data.repository.TravellersRepository
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
@@ -25,6 +20,32 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // Seed mockup data if not already present
         AppDatabase.seedInitialData(database, viewModelScope)
+        
+        // Ensure default user profile exists so flows work in real-time
+        viewModelScope.launch {
+            try {
+                val existing = repository.userProfile.first()
+                if (existing == null) {
+                    repository.saveProfile(
+                        com.example.data.local.ProfileEntity(
+                            id = 1,
+                            name = "Rahul Shah",
+                            age = "24",
+                            gender = "Male",
+                            photoUri = "",
+                            bio = "Avid explorer and budget travel planner.",
+                            passportNumber = "A12345678",
+                            emergencyContact = "+1-555-0199",
+                            homeAddress = "123 Adventure Lane, Horizon City",
+                            bloodGroup = "O+",
+                            customNote = "Keep hydration high. Prefers window seats."
+                        )
+                    )
+                }
+            } catch (e: Exception) {
+                // Ignore errors
+            }
+        }
     }
 
     // App Preferences
@@ -37,10 +58,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val _isCompactMode = MutableStateFlow(false)
     val isCompactMode: StateFlow<Boolean> = _isCompactMode.asStateFlow()
 
+    private val _isSolidMode = MutableStateFlow(false)
+    val isSolidMode: StateFlow<Boolean> = _isSolidMode.asStateFlow()
+
+    private val _appFont = MutableStateFlow(com.example.ui.theme.AppFont.SANS)
+    val appFont: StateFlow<com.example.ui.theme.AppFont> = _appFont.asStateFlow()
+
+    private val _customCornerRadiusDp = MutableStateFlow(-1) // -1 means default
+    val customCornerRadiusDp: StateFlow<Int> = _customCornerRadiusDp.asStateFlow()
+
     private val _selectedCurrency = MutableStateFlow(AppCurrency.USD)
     val selectedCurrency: StateFlow<AppCurrency> = _selectedCurrency.asStateFlow()
 
-    private val _hasSeenWelcome = MutableStateFlow(false)
+    private val _hasSeenWelcome = MutableStateFlow(true) // Set to true to hide intro automatically
     val hasSeenWelcome: StateFlow<Boolean> = _hasSeenWelcome.asStateFlow()
 
     private val _searchQuery = MutableStateFlow("")
@@ -113,6 +143,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setCompactMode(compact: Boolean) {
         _isCompactMode.value = compact
+    }
+
+    fun toggleSolidMode() {
+        _isSolidMode.value = !_isSolidMode.value
+    }
+
+    fun setSolidMode(solid: Boolean) {
+        _isSolidMode.value = solid
+    }
+
+    fun setAppFont(font: com.example.ui.theme.AppFont) {
+        _appFont.value = font
+    }
+
+    fun setCustomCornerRadiusDp(dp: Int) {
+        _customCornerRadiusDp.value = dp
     }
 
     fun setCurrency(currency: AppCurrency) {

@@ -25,12 +25,22 @@ import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CloudDone
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FontDownload
 import androidx.compose.material.icons.filled.HelpOutline
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Layers
 import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhoneAndroid
+import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.RoundedCorner
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.TableChart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -53,6 +63,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -75,6 +89,9 @@ fun MoreScreen(
     val isDarkMode by viewModel.isDarkMode.collectAsStateWithLifecycle()
     val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
     val isCompactMode by viewModel.isCompactMode.collectAsStateWithLifecycle()
+    val isSolidMode by viewModel.isSolidMode.collectAsStateWithLifecycle()
+    val appFont by viewModel.appFont.collectAsStateWithLifecycle()
+    val customCornerRadiusDp by viewModel.customCornerRadiusDp.collectAsStateWithLifecycle()
     val currentCurrency by viewModel.selectedCurrency.collectAsStateWithLifecycle()
     val allTrips by viewModel.allTrips.collectAsStateWithLifecycle()
     val allExpenses by viewModel.allExpenses.collectAsStateWithLifecycle()
@@ -84,8 +101,13 @@ fun MoreScreen(
     
     val context = LocalContext.current
 
+    val permissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { _ -> }
+
     var showCurrencyDialog by remember { mutableStateOf(false) }
     var showExportDialog by remember { mutableStateOf(false) }
+    var showFontDialog by remember { mutableStateOf(false) }
 
     LazyColumn(
         modifier = modifier
@@ -344,7 +366,12 @@ fun MoreScreen(
                                 .background(MaterialTheme.colorScheme.surfaceVariant),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("📱", fontSize = 18.sp)
+                            Icon(
+                                imageVector = Icons.Default.PhoneAndroid,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
@@ -435,6 +462,197 @@ fun MoreScreen(
                             checkedTrackColor = BurgundyPrimary
                         ),
                         modifier = Modifier.testTag("more_dark_mode_switch")
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                )
+
+                // Solid Mode Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(PastelMint),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Layers,
+                                contentDescription = null,
+                                tint = StatusGreen,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Text(
+                                text = "Detected Solid Mode",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            Text(
+                                text = "Hide translucent frosted glass effects",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
+                            )
+                        }
+                    }
+
+                    Switch(
+                        checked = isSolidMode,
+                        onCheckedChange = { viewModel.setSolidMode(it) },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = BurgundyPrimary
+                        ),
+                        modifier = Modifier.testTag("solid_mode_switch")
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                )
+
+                // Built-in Font Row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showFontDialog = true }
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(PastelPeach),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.FontDownload,
+                                contentDescription = null,
+                                tint = BurgundyPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column {
+                            Text(
+                                text = "Built-in Fonts",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            Text(
+                                text = "Active Font: ${appFont.label}",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 12.sp
+                                )
+                            )
+                        }
+                    }
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(1.dp)
+                        .background(MaterialTheme.colorScheme.outline.copy(alpha = 0.15f))
+                )
+
+                // Manual Corner Roundness Row
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Box(
+                                modifier = Modifier
+                                .size(36.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(MaterialTheme.colorScheme.primaryContainer),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.RoundedCorner,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column {
+                                Text(
+                                    text = "Manually Reduce Corners",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                                Text(
+                                    text = if (customCornerRadiusDp < 0) "Corner Roundness: Default (Auto)" else "Corner Roundness: ${customCornerRadiusDp} dp",
+                                    style = MaterialTheme.typography.bodySmall.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 12.sp
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(10.dp))
+                    
+                    Slider(
+                        value = customCornerRadiusDp.toFloat(),
+                        onValueChange = { viewModel.setCustomCornerRadiusDp(it.toInt()) },
+                        valueRange = -1f..24f,
+                        steps = 26,
+                        colors = SliderDefaults.colors(
+                            thumbColor = BurgundyPrimary,
+                            activeTrackColor = BurgundyPrimary,
+                            inactiveTrackColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp)
                     )
                 }
 
@@ -544,7 +762,12 @@ fun MoreScreen(
                                 .background(MaterialTheme.colorScheme.primaryContainer),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("🔐", fontSize = 18.sp)
+                            Icon(
+                                imageVector = Icons.Default.Security,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                         Spacer(modifier = Modifier.width(14.dp))
                         Column {
@@ -694,17 +917,36 @@ fun MoreScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "Made with ❤️ by Rahul Shah",
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 16.sp
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Text(
+                            text = "Made with ",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 16.sp
+                            )
                         )
-                    )
+                        Icon(
+                            imageVector = Icons.Default.Favorite,
+                            contentDescription = "Love",
+                            tint = Color(0xFFE11D48),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text(
+                            text = " by Rahul Shah",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontSize = 16.sp
+                            )
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Travellers v1.2 · Premium Expense & Travel Suite",
+                        text = "Travellers v4.0 · Premium Expense & Travel Suite",
                         style = MaterialTheme.typography.bodySmall.copy(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 12.sp
@@ -729,9 +971,73 @@ fun MoreScreen(
         com.example.ui.components.PermissionsRequestDialog(
             onDismiss = { viewModel.showPermissionsDialog.value = false },
             onRequestAll = {
-                // Request runtime permissions if applicable
+                val list = mutableListOf<String>()
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    list.add(android.Manifest.permission.POST_NOTIFICATIONS)
+                    list.add(android.Manifest.permission.READ_MEDIA_IMAGES)
+                } else {
+                    list.add(android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                    list.add(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                }
+                permissionsLauncher.launch(list.toTypedArray())
             }
         )
+    }
+
+    // Font Selection Dialog
+    if (showFontDialog) {
+        Dialog(onDismissRequest = { showFontDialog = false }) {
+            androidx.compose.material3.Surface(
+                shape = RoundedCornerShape(24.dp),
+                color = MaterialTheme.colorScheme.surface,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        text = "Select Application Font",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    com.example.ui.theme.AppFont.entries.forEach { font ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .clickable {
+                                    viewModel.setAppFont(font)
+                                    showFontDialog = false
+                                }
+                                .padding(vertical = 12.dp, horizontal = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = font.label,
+                                style = androidx.compose.ui.text.TextStyle(
+                                    fontFamily = font.fontFamily,
+                                    fontSize = 16.sp,
+                                    fontWeight = if (appFont == font) FontWeight.Bold else FontWeight.Normal,
+                                    color = if (appFont == font) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                )
+                            )
+                            if (appFont == font) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // Currency Selection Dialog
@@ -807,13 +1113,13 @@ fun MoreScreen(
                     Spacer(modifier = Modifier.height(14.dp))
 
                     val options = listOf(
-                        "PDF" to "📄 Export PDF Invoice Statement",
-                        "JSON" to "📊 Export JSON Raw Data",
-                        "CSV" to "📈 Export CSV Spreadsheet",
-                        "TXT" to "📝 Export TXT Summary Document"
+                        Triple("PDF", "Export PDF Invoice Statement", Icons.Default.PictureAsPdf),
+                        Triple("JSON", "Export JSON Raw Data", Icons.Default.DataObject),
+                        Triple("CSV", "Export CSV Spreadsheet", Icons.Default.TableChart),
+                        Triple("TXT", "Export TXT Summary Document", Icons.Default.Description)
                     )
 
-                    options.forEach { (format, title) ->
+                    options.forEach { (format, title, icon) ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -829,6 +1135,13 @@ fun MoreScreen(
                                 .padding(vertical = 14.dp, horizontal = 14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
                                 text = title,
                                 style = MaterialTheme.typography.bodyMedium.copy(

@@ -17,6 +17,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Explore
+import androidx.compose.material.icons.filled.FlightTakeoff
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -115,11 +119,23 @@ fun TripsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                listOf("ALL" to "All Trips", "ACTIVE" to "Active", "UPCOMING" to "Upcoming", "COMPLETED" to "Past").forEach { (code, label) ->
+                listOf(
+                    Triple("ALL", "All Trips", Icons.Default.Explore),
+                    Triple("ACTIVE", "Active", Icons.Default.FlightTakeoff),
+                    Triple("UPCOMING", "Upcoming", Icons.Default.CalendarToday),
+                    Triple("COMPLETED", "Past", Icons.Default.CheckCircle)
+                ).forEach { (code, label, icon) ->
                     FilterChip(
                         selected = filterStatus == code,
                         onClick = { filterStatus = code },
                         label = { Text(label, fontSize = 12.sp) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
+                            )
+                        },
                         shape = RoundedCornerShape(16.dp),
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = primaryColor,
